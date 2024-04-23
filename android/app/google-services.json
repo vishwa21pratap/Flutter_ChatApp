@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "914435781453",
+    "project_id": "chatapptute-f8f94",
+    "storage_bucket": "chatapptute-f8f94.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:914435781453:android:117db0af04235172837d04",
+        "android_client_info": {
+          "package_name": "com.example.weather"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5IMGDYQR0SfEyFcFkdhPy66uzYyU9Bxg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
