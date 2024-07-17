@@ -6,14 +6,16 @@ class Message {
   final String receiverID;
   final String message;
   final Timestamp timestamp;
-  Message(
-      {required this.senderID,
-      required this.message,
-      required this.receiverID,
-      required this.senderEmail,
-      required this.timestamp});
+  final String? fileUrl; // Add fileUrl field
 
-  // convery to a map
+  Message({
+    required this.senderID,
+    required this.senderEmail,
+    required this.receiverID,
+    required this.message,
+    required this.timestamp,
+    this.fileUrl,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -22,6 +24,18 @@ class Message {
       'receiverID': receiverID,
       'message': message,
       'timestamp': timestamp,
+      'fileUrl': fileUrl, // Include fileUrl in the map
     };
+  }
+
+  factory Message.fromMap(Map<String, dynamic> map) {
+    return Message(
+      senderID: map['senderID'],
+      senderEmail: map['senderEmail'],
+      receiverID: map['receiverID'],
+      message: map['message'],
+      timestamp: map['timestamp'],
+      fileUrl: map['fileUrl'], // Parse fileUrl from the map
+    );
   }
 }

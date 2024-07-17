@@ -9,7 +9,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
         title: const Text("Settings"),
         centerTitle: true,
@@ -20,7 +20,7 @@ class SettingsPage extends StatelessWidget {
       body: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.secondary,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(15),
         ),
         margin: const EdgeInsets.all(25),
         padding: const EdgeInsets.all(15),

@@ -43,7 +43,14 @@ class LogInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      appBar: AppBar(
+        title: const Text("VishChat"),
+        centerTitle: true,
+        backgroundColor: Color.fromARGB(255, 201, 183, 230),
+        foregroundColor: Colors.black,
+        elevation: 10,
+      ),
+      backgroundColor: Color.fromARGB(255, 219, 205, 242),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -52,20 +59,20 @@ class LogInPage extends StatelessWidget {
             Icon(
               Icons.message,
               size: 60,
-              color: Theme.of(context).colorScheme.primary,
+              color: Color.fromARGB(255, 220, 185, 174),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 40),
             //welcome back
             Text(
               "Welcome back, you've been missed!",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
+                color: Colors.black,
                 fontSize: 16,
               ),
             ),
 
             const SizedBox(
-              height: 25,
+              height: 20,
             ),
             // email tf
             MyTextField(
@@ -85,11 +92,11 @@ class LogInPage extends StatelessWidget {
 
             //login
             MyButton(
-              text: "Login",
+              text: "LOGIN",
               onTap: () => login(context),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             //register now
             Row(
@@ -98,7 +105,7 @@ class LogInPage extends StatelessWidget {
                 Text(
                   "Not a member? ",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Colors.black,
                   ),
                 ),
                 GestureDetector(
@@ -107,7 +114,7 @@ class LogInPage extends StatelessWidget {
                     "Register Now ",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Colors.black,
                     ),
                   ),
                 ),

@@ -8,7 +8,6 @@ import 'package:weather/services/auth/chat/chat_service.dart';
 class HomePage extends StatelessWidget {
   HomePage({super.key});
 
-  //chat & auth service
   final ChatService _chatService = ChatService();
   final AuthService _authService = AuthService();
 
@@ -17,14 +16,13 @@ class HomePage extends StatelessWidget {
     auth.signOut();
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Home"),
+        title: const Text("Users List"),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -33,47 +31,57 @@ class HomePage extends StatelessWidget {
     );
   }
 
-//build a list of users except for the current login user
-
   Widget _buildUserList() {
     return StreamBuilder(
       stream: _chatService.getUsersStream(),
       builder: (context, snapshot) {
-        //error
         if (snapshot.hasError) {
           return const Text("Error");
         }
-        //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading..");
         }
 
-        //return view list
-
         return ListView(
           children: snapshot.data!
-              .map<Widget>((userData) => _buildUserListItem(userData, context))
+              .map<Widget>((userData) => FutureBuilder<String>(
+                    future: _chatService.getLastMessage(
+                      _authService.getCurrentUser()!.uid,
+                      userData["uid"],
+                    ),
+                    builder: (context, lastMessageSnapshot) {
+                      if (lastMessageSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Text("Loading..");
+                      }
+                      if (lastMessageSnapshot.hasError) {
+                        return const Text("Error");
+                      }
+                      final lastMessage =
+                          lastMessageSnapshot.data ?? "No messages yet";
+
+                      return _buildUserListItem(userData, lastMessage, context);
+                    },
+                  ))
               .toList(),
         );
       },
     );
   }
 
-  // build user list file
   Widget _buildUserListItem(
-      Map<String, dynamic> userData, BuildContext context) {
-    // display all users except current user
+      Map<String, dynamic> userData, String lastMessage, BuildContext context) {
     if (userData["email"] != _authService.getCurrentUser()!.email) {
       return UserTile(
         text: userData["email"],
+        lastMessage: lastMessage,
         onTap: () {
-          // tapped on a user to chat
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChatPage(
-                recieverEmail: userData["email"],
-                recieverID: userData["uid"],
+                receiverEmail: userData["email"],
+                receiverID: userData["uid"],
               ),
             ),
           );

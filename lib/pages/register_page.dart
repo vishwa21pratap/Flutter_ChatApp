@@ -15,12 +15,9 @@ class RegisterPage extends StatelessWidget {
     required this.onTap,
   });
 
-  // register method
-
   void register(BuildContext context) {
-    // get auth service
     final _auth = AuthService();
-// if passwords match
+
     if (_pwController.text == _confirmPwController.text) {
       try {
         _auth.signUpWithEmailPassword(
@@ -35,45 +32,51 @@ class RegisterPage extends StatelessWidget {
           ),
         );
       }
-    }
-    //passwords dont match then
-    else {
+    } else {
       showDialog(
         context: context,
         builder: (context) => const AlertDialog(
-          title: Text("Passwords Dont Match"),
+          title: Text("Passwords Don't Match"),
         ),
       );
     }
   }
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: Center(
+      appBar: AppBar(
+        title: const Text("Register Now!!"),
+        centerTitle: true,
+        backgroundColor: Color.fromARGB(255, 201, 183, 230),
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      backgroundColor: Color.fromARGB(255, 219, 205, 242),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             //logo
+
             Icon(
               Icons.message,
-              size: 60,
-              color: Theme.of(context).colorScheme.primary,
+              size: 40,
+              color: Color.fromARGB(255, 210, 162, 147),
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 8.4),
             //welcome back
             Text(
               "Let's create your Account..",
               style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
+                color: Colors.black,
                 fontSize: 16,
               ),
             ),
 
             const SizedBox(
-              height: 25,
+              height: 8,
             ),
             // email tf
             MyTextField(
@@ -81,7 +84,7 @@ class RegisterPage extends StatelessWidget {
               obscureText: false,
               controller: _emailController,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             //pw tf
             MyTextField(
               hintText: "Password",
@@ -89,7 +92,7 @@ class RegisterPage extends StatelessWidget {
               controller: _pwController,
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             //CNFRM pw tf
             MyTextField(
               hintText: " Confirm Password",
@@ -97,15 +100,15 @@ class RegisterPage extends StatelessWidget {
               controller: _confirmPwController,
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             //login
             MyButton(
-              text: "Register",
+              text: "REGISTER",
               onTap: () => register(context),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
 
             //register now
             Row(
@@ -114,7 +117,7 @@ class RegisterPage extends StatelessWidget {
                 Text(
                   "Already Registered? ",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Colors.black,
                   ),
                 ),
                 GestureDetector(
@@ -123,7 +126,7 @@ class RegisterPage extends StatelessWidget {
                     "Login Now ",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Colors.black,
                     ),
                   ),
                 ),

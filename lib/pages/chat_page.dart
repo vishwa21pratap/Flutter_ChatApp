@@ -1,18 +1,21 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:weather/components/chat_bubble.dart';
 import 'package:weather/components/my_textfield.dart';
 import 'package:weather/services/auth/auth_service.dart';
 import 'package:weather/services/auth/chat/chat_service.dart';
 
 class ChatPage extends StatefulWidget {
-  final String recieverEmail;
-  final String recieverID;
+  final String receiverEmail;
+  final String receiverID;
 
   ChatPage({
     super.key,
-    required this.recieverEmail,
-    required this.recieverID,
+    required this.receiverEmail,
+    required this.receiverID,
   });
 
   @override
@@ -20,36 +23,21 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  //text congtroller
   final TextEditingController _messageController = TextEditingController();
-
-  //chat and auth
   final ChatService _chatService = ChatService();
-
   final AuthService _authService = AuthService();
-
-  //for textfield focus
-
-  FocusNode myFocusNode = FocusNode();
+  final FocusNode myFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // listener to focus node
     myFocusNode.addListener(() {
       if (myFocusNode.hasFocus) {
-        // cause a delay for keyboard pop up
-        Future.delayed(
-          const Duration(milliseconds: 500),
-          () => scrollDown(),
-        );
+        Future.delayed(const Duration(milliseconds: 500), () => scrollDown());
       }
     });
-    //scroll down auto
-    Future.delayed(
-      const Duration(milliseconds: 500),
-      () => scrollDown(),
-    );
+    Future.delayed(const Duration(milliseconds: 500), () => scrollDown());
   }
 
   @override
@@ -59,25 +47,36 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  // scroll controller
-  final ScrollController _scrollController = ScrollController();
   void scrollDown() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(seconds: 1),
-      curve: Curves.fastOutSlowIn,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
-  //send message
   void sendMessage() async {
-    //send only if msg in not null
     if (_messageController.text.isNotEmpty) {
-      //send
       await _chatService.sendMessage(
-          widget.recieverID, _messageController.text);
-      // clear text controller
+          widget.receiverID, _messageController.text);
       _messageController.clear();
+    }
+    scrollDown();
+  }
+
+  void sendPDF() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      File file = File(result.files.single.path!);
+      await _chatService.sendPDF(widget.receiverID, file);
     }
     scrollDown();
   }
@@ -85,8 +84,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
-        title: Text(widget.recieverEmail),
+        title: Text(widget.receiverEmail),
         centerTitle: true,
         backgroundColor: Color.fromARGB(255, 223, 245, 245),
         foregroundColor: Colors.black,
@@ -94,11 +94,9 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          //display the message
           Expanded(
             child: _buildMessageList(),
           ),
-          //user input
           _buildUserInput(),
         ],
       ),
@@ -108,17 +106,15 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageList() {
     String senderID = _authService.getCurrentUser()!.uid;
     return StreamBuilder(
-      stream: _chatService.getMessages(widget.recieverID, senderID),
+      stream: _chatService.getMessages(widget.receiverID, senderID),
       builder: (context, snapshot) {
-        //errors
         if (snapshot.hasError) {
           return const Text("Error");
         }
-        //loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Text("Loading");
         }
-        // return list
+        WidgetsBinding.instance.addPostFrameCallback((_) => scrollDown());
         return ListView(
           controller: _scrollController,
           children:
@@ -128,41 +124,88 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  //build message item
   Widget _buildMessageItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-    //is current user
     bool isCurrentUser = data['senderID'] == _authService.getCurrentUser()!.uid;
-
-    //align message to right and left
     var alignment =
         isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
+
     return Container(
       alignment: alignment,
-      margin: EdgeInsets.symmetric(vertical: 2.0), // Add vertical margin
+      margin: EdgeInsets.symmetric(vertical: 2.0),
       child: Column(
         crossAxisAlignment:
             isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Padding(
-            padding:
-                EdgeInsets.symmetric(horizontal: 8.0), // Add horizontal padding
+            padding: EdgeInsets.symmetric(horizontal: 8.0),
             child: ChatBubble(
-                isCurrentUser: isCurrentUser, message: data["message"]),
+              isCurrentUser: isCurrentUser,
+              message: data["message"],
+            ),
           ),
+          if (data['fileUrl'] != null)
+            GestureDetector(
+              onTap: () async {
+                final url = data['fileUrl'];
+                print("Attempting to open URL: $url"); // Debug print
+
+                // Ensure URL is valid and starts with http/https
+                if (url.startsWith('http://') || url.startsWith('https://')) {
+                  final uri = Uri.parse(url);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  } else {
+                    print('Could not launch $url'); // Debug print
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Error'),
+                        content: Text('Could not launch $url'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } else {
+                  print('Invalid URL: $url'); // Invalid URL debug print
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Error'),
+                      content: Text('Invalid URL: $url'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  'Open PDF',
+                  style: TextStyle(color: Colors.blue),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  //build msg input
   Widget _buildUserInput() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 50.0),
       child: Row(
         children: [
-          //textfield
           Expanded(
             child: MyTextField(
               controller: _messageController,
@@ -171,7 +214,10 @@ class _ChatPageState extends State<ChatPage> {
               focusNode: myFocusNode,
             ),
           ),
-          //send button
+          IconButton(
+            icon: Icon(Icons.attach_file),
+            onPressed: sendPDF,
+          ),
           Container(
             decoration: const BoxDecoration(
               color: Colors.green,
